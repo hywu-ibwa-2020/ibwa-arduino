@@ -6,7 +6,7 @@
 #include <Servo.h>
 #include <TM1637Display.h>
 
-//#define CLK 2 // TM1637 클럭 연결 포트(D22)
+#define CLK 2 // TM1637 클럭 연결 포트(D22)
 #define DIO 9 // TM1637 데이터 연결 포트(D9)
 #define PIN 5 // 네오픽셀 연결핀 번호 디지털
 #define NUMPIXELS 30 // 네오픽셀 갯수
