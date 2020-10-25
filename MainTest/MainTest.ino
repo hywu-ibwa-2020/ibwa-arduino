@@ -223,23 +223,23 @@ void playMusicByMood(String input) {
 // 분위기별 맞춤 조명
 void colorByMood(String input) {
     if (input == "m01") {
-      Serial.println("첫번째 조명을 켭니다.");
-      colorWipe(strip.Color(104, 123, 238), 50);  // 초록
+      Serial.println("m01: 보라색 조명을 켭니다.");
+      colorWipe(strip.Color(104, 123, 238), 50);  // 보라
     } else if (input == "m02") {
-      Serial.println("두번째 조명을 켭니다.");
-      colorWipe(strip.Color(230, 255, 65), 50);  // 빨강
+      Serial.println("m02: 노랑색 조명을 켭니다.");
+      colorWipe(strip.Color(230, 255, 65), 50);  // 노랑
     } else if (input == "m03") {
-      Serial.println("세번째 조명을 켭니다.");
-      colorWipe(strip.Color(0, 255, 0), 50);  // 파랑
+      Serial.println("m03: 빨강색 조명을 켭니다.");
+      colorWipe(strip.Color(0, 255, 0), 50);  // 빨강
     } else if (input == "m04") { 
-      Serial.println("네번째 조명을 켭니다.");
-      colorWipe(strip.Color(158, 255, 155), 50);  // 보라
+      Serial.println("m04: 분홍색 조명을 켭니다.");
+      colorWipe(strip.Color(158, 255, 155), 50);  // 분홍
     } else if (input == "m05") {
-      Serial.println("다섯번째 조명을 켭니다.");
+      Serial.println("m05: 파랑색 조명을 켭니다.");
       colorWipe(strip.Color(100, 0, 205), 50);  // 파랑
     } else if (input == "m06") { 
-      Serial.println("여섯번째 조명을 켭니다.");
-      colorWipe(strip.Color(100, 0, 0), 50);  // 보라
+      Serial.println("m06: 초록색 조명을 켭니다.");
+      colorWipe(strip.Color(100, 0, 0), 50);  // 초록
     } else {
       Serial.println("잘못된 접근입니다.");
     }
