@@ -6,33 +6,39 @@
 #include <Servo.h>
 
 #define LED_PIN 6
-#define LED_COUNT 30
+#define LED_COUNT 15
 
 Servo sv1_up, sv2_up;
 Servo sv1_down, sv2_down;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, NEO_RGBW + NEO_KHZ800);
 SoftwareSerial DFPlayerSerial(10, 11); // DFPlayer RX, TX
+
 // 서보모터 각도값 변수
-int is_checked = 180;    // 버튼 클릭시 서보모터 10도 작동
+int is_checked = 30;    // 버튼 클릭시 서보모터 10도 작동
 int is_not_checked = 0; // 버튼 클릭 안했을 떄 서보모터 0도 작동
 
 // 서보모터 delay 시간 값
-int wait = 500;
-//int sensorValue = 0;
+int wait = 5000;
+
+// millis 관련 변수
+unsigned long previousMillis = 0; // 현재 시간 저장
+unsigned long currentMillis;
+long sv1_up_interval = 5000; // 커튼1, 1초간 onClick
+long sv1_down_interval = 5000; // 커튼1, 2초간 onClick
+long sv2_up_interval = 5000; // 커튼2, 3초간 onClick
+long sv2_down_interval = 5000; // 커튼2, 4초간 onClick
 
 // custom function 선언
 void colorWipe(uint32_t c, int colorWait);
 void colorByMood(char color);
 
 int r, g, b;
-// 1. AI 맞춤 추천 / 분위기별 맞춤 추천 조명 기능
-// 2. 사용자가 지정한 색상으로 조명 변경
 
 void setup()
 {
   Serial.begin(9600);
-//  Serial1.begin(9600);  // 블루투스 모듈 통신
+  Serial1.begin(9600);  // 블루투스 모듈 통신
     
   sv1_up.attach(22);    // 서보모터 핀넘버
   sv1_down.attach(23);
@@ -51,12 +57,14 @@ void setup()
   DFPlayerSerial.begin(9600);        // 소프트웨어 시리얼 통신 시작
   mp3_set_serial(DFPlayerSerial);    // DFPlayer 모듈에 소프트웨어 시리얼 설정
   delay(1);                           // 볼륨이 설정될 동안 1ms 대기
-  mp3_set_volume (20);                // 볼륨 설정 (0~30)
+  mp3_set_volume (0);                // 볼륨 설정 (0~30)
+//  mp3_pause();
 }
  
 void loop()
 { 
   String input;
+  String n = ""+'\n';
   if(Serial.available()) {
     Serial.println("--------------------------------------------");
     input = Serial.readStringUntil('\n');
@@ -70,10 +78,14 @@ void loop()
     } else if (data == "c") {                       // 모터 제어
       Serial.println("<< 모터 제어 기능 >>");
       operateMotorsCds(input);
-    } else {
+    } else if (data == "r") {
       Serial.println("<< 사용자 지정 조명 색 변경 기능 >>");
       printCustomColor(input);                      // 사용자 색상 변경 "255,255,255" 형태로 전달됨
-    }
+    } else if (data == "o") {
+      colorWipe(strip.Color(0, 0, 0), 10);
+    }  else {
+      Serial.println("입력된 값이 없습니다.");
+    } 
   }
 }
 // 분위기별 맞춤 추천 기능 제어하는 함수
@@ -100,8 +112,8 @@ void recByMood(String input) {
 }
 // 커튼 모터 제어하는 함수
 void operateMotorsCds(String mainBtn){
-  // 커일업
-  if (mainBtn == "c1up"){
+  String n = ""+'\n';
+  if (mainBtn == "c1up"){  // 커일업 
     Serial.println("1번 커튼을 올립니다.");
     sv1_up.write(is_checked);
     delay(wait);
@@ -137,55 +149,61 @@ void operateMotorsCds(String mainBtn){
     sv2_down.write(is_not_checked);      
   }  
 }
-// 입력받은 rgb 값으로 네오픽셀 색상 변경하는 함수
 void printCustomColor(String RGBValue) {
-  Serial.println(RGBValue);
-  String n = ""+'\n';
+  String n = "";
   if (RGBValue != n) {
-    r = splitValue(RGBValue, 1);
+    r = splitRValue(RGBValue);
     Serial.println(r);
-    g = splitValue(RGBValue, 2);
+    g = splitGValue(RGBValue);
     Serial.println(g);
-    b = splitValue(RGBValue, 3);
+    b = splitBValue(RGBValue);
     Serial.println(b);
+
     colorWipe(strip.Color(g, r, b), 50);
   }
 }
-// String을 int로 변경하는 함수
 int stringToInt(String str) {
   char exampleChar[1];
   str.toCharArray(exampleChar, 3);
   int intStr = atoi(exampleChar);
   return intStr;
 }
-// 입력받은 값에서 r 값 추출하는 함수
-int splitValue(String str, int num) {
+int splitRValue(String str) {
   int first = str.indexOf(",");// 첫 번째 콤마 위치
   int second = str.indexOf(",",first+1); // 두 번째 콤마 위치
   int length = str.length(); // 문자열 길이
-  
-  String str1 = str.substring(0, first); // 첫 번째 토큰 (0, 3)
-  String str2 = str.substring(first+1, second); // 두 번째 토큰 (4, 7)
-  String str3 = str.substring(second+1,length); // 세 번째 토큰(8, 10) 
+
+  String str1 = str.substring(1, first); // 첫 번째 토큰 (0, 3)
 
   char char1[1];
-  
-  if (num == 1) {
-    str1.toCharArray(char1, 4);
-    int r = atoi(char1);
-    Serial.println("r값을 추출합니다." + r);
-    return r;
-  } else if (num == 2) {
-    str1.toCharArray(char1, 4);
-    int g = atoi(char1);
-    Serial.println("g값을 추출합니다." + g);
-    return g;
-  } else {
-    str1.toCharArray(char1, 4);
-    int b = atoi(char1);
-    Serial.println("b값을 추출합니다." + b);
-    return b;
-  }
+  str1.toCharArray(char1, 4);
+  int r = atoi(char1);
+
+  return r;
+}
+int splitGValue(String str) {
+  int first = str.indexOf(",");// 첫 번째 콤마 위치
+  int second = str.indexOf(",",first+1); // 두 번째 콤마 위치
+  int length = str.length(); // 문자열 길이
+
+  String str1 = str.substring(first+1, second); // 두 번째 토큰 (4, 7)
+
+  char char1[1];
+  str1.toCharArray(char1, 4);
+  int g = atoi(char1);
+  return g;
+}
+int splitBValue(String str) {
+  int first = str.indexOf(",");// 첫 번째 콤마 위치
+  int second = str.indexOf(",",first+1); // 두 번째 콤마 위치
+  int length = str.length(); // 문자열 길이
+
+  String str1 = str.substring(second+1,length); // 세 번째 토큰(8, 10)  
+  char char1[1];
+  str1.toCharArray(char1, 4);
+  int b = atoi(char1);
+
+  return b;
 }
 // 지정한 컬러로 픽셀 하나씩 출력해주는 함수
 void colorWipe(uint32_t c, int colorWait) {
