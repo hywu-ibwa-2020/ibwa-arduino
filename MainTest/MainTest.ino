@@ -149,6 +149,7 @@ void operateMotorsCds(String mainBtn){
     sv2_down.write(is_not_checked);      
   }  
 }
+// 사용자 지정 색상 출력
 void printCustomColor(String RGBValue) {
   String n = "";
   if (RGBValue != n) {
@@ -162,6 +163,7 @@ void printCustomColor(String RGBValue) {
     colorWipe(strip.Color(g, r, b), 50);
   }
 }
+// 문자열 정수값으로 변환
 int stringToInt(String str) {
   char exampleChar[1];
   str.toCharArray(exampleChar, 3);
